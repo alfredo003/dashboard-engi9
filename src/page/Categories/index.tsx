@@ -13,8 +13,7 @@ type Category = {
   id?: string;
   name: string;
   description: string;
-  icon: string;
-  color: string;
+  icon: string; 
   status: string;
   productsCount?: number;
   createdAt?: string;
