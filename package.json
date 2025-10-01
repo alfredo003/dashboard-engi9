@@ -16,8 +16,9 @@
     "cloudinary-react": "^1.8.1",
     "firebase": "^12.3.0",
     "lucide-react": "^0.544.0",
-    "react": "^19.1.1",
-    "react-dom": "^19.1.1",
+    "or": "^0.2.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "react-router-dom": "^7.9.3",
     "tailwindcss": "^4.1.13"
   },
