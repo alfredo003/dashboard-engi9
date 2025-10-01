@@ -3,10 +3,10 @@ import { getCategories, addCategory, updateItem as updateCategory, deleteItem as
 import { getBrands, addBrands, updateBrands, deleteBrands } from '../../../api/brands';
 import Header from './Header';
 import Tabs from './Tabs';
-import CategoryForm from './CategoryForm';
-import BrandForm from './BrandForm';
-import CategoryList from './CategoryList';
-import BrandList from './BrandList';
+import CategoryForm from '../../components/CategoryForm';
+import BrandForm from '../../components/BrandForm';
+import CategoryList from '../../components/CategoryList';
+import BrandList from '../../components/BrandList';
 import SearchBar from './SearchBar';
 
 type Category = {

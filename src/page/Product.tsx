@@ -263,7 +263,7 @@ const ProductTableManager = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
+        <div className="mb-8 mt-28">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Gerenciamento de Produtos</h1>
           <p className="text-gray-600">Visualize, edite e gerencie todos os seus produtos</p>
         </div>
@@ -329,7 +329,7 @@ const ProductTableManager = () => {
                   filteredProducts.map((product) => (
                     <tr key={product.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        <img src={product.image} alt="" width={100} />
+                        <img src={product.image} alt="" width={0} />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">{product.name}</div>
@@ -351,7 +351,7 @@ const ProductTableManager = () => {
                             onClick={() => handleEdit(product)}
                             className="text-blue-600 hover:text-blue-900 p-2 hover:bg-blue-50 rounded-lg transition-colors"
                             title="Editar"
-                            disabled={loading} // Disable edit button during loading
+                            disabled={loading} 
                           >
                             <Pencil className="h-4 w-4" />
                           </button>
@@ -359,7 +359,7 @@ const ProductTableManager = () => {
                             onClick={() => product.id && handleDelete(product.id)}
                             className="text-red-600 hover:text-red-900 p-2 hover:bg-red-50 rounded-lg transition-colors"
                             title="Excluir"
-                            disabled={loading} // Disable delete button during loading
+                            disabled={loading} 
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>

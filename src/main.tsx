@@ -10,6 +10,8 @@ import App from "./App";
 import ProductRegistration from "./page/Product";
 import CategoryBrandManagement from "./page/Categories";
 import ProductTableManager from "./page/Product";
+import Portifolio from "./page/portifolio";
+
 const router = createBrowserRouter([
   {
     path: "/",
@@ -18,7 +20,7 @@ const router = createBrowserRouter([
       { index: true, element: <ProductRegistration /> }, 
       { path: "products", element: <ProductTableManager /> },
       { path: "categories", element: <CategoryBrandManagement /> },
-      { path: "portifolio", element: <CategoryBrandManagement /> },
+      { path: "portifolio", element: <Portifolio /> },
       { path: "*", element: <h1>Página não encontrada</h1> },
     ],
   },
