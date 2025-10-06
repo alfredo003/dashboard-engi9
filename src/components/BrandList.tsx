@@ -1,5 +1,6 @@
 import React from 'react';
 import { Award, Edit, Trash2 } from 'lucide-react';
+import dayjs from 'dayjs';
 
 interface Brand {
   id?: string;
@@ -119,7 +120,7 @@ const BrandList: React.FC<BrandListProps> = ({ brands, onEdit, onDelete, searchT
           <div className="flex items-center justify-between text-sm border-t pt-3">
             <span className="text-gray-500">{brand.productsCount} produtos</span>
             <span className="text-gray-500">
-              Criada em {brand.createdAt ? new Date(brand.createdAt).toLocaleDateString('pt-BR') : '-'}
+              Criada em {brand.createdAt ? dayjs(brand.createdAt).locale('pt-br').format('DD/MM/YYYY HH:mm') : '-'}
             </span>
           </div>
         </div>

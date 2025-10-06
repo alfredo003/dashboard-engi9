@@ -182,26 +182,35 @@ const Portifolio = () => {
     setIsModalOpen(true);
   };
 
-  const fetchProducts = async () => {
-    try {
-      const prods: Portifolio[] = [];
-      const snap = await getProducts();
-      snap.forEach((doc: any) => {
-        const data = doc.data();
-        prods.push({
-          id: doc.id,
-          name: data.name || '',
-          local: data.local || '',
-          image: data.image || '',
-          description: data.description || ''
-        });
-      });
-      setProducts(prods);
-    } catch (error) {
-      console.error('Erro ao carregar projetos:', error);
-      alert('Erro ao carregar projetos');
+const fetchProducts = async () => {
+  try {
+    // tenta carregar do cache primeiro
+    const cached = localStorage.getItem("products");
+    if (cached) {
+      setProducts(JSON.parse(cached));
     }
-  };
+
+    // busca da API e atualiza cache
+    const prods: Portifolio[] = [];
+    const snap = await getProducts();
+    snap.forEach((doc: any) => {
+      const data = doc.data();
+      prods.push({
+        id: doc.id,
+        name: data.name || "",
+        local: data.local || "",
+        image: data.image || "",
+        description: data.description || "",
+      });
+    });
+    setProducts(prods);
+    localStorage.setItem("products", JSON.stringify(prods));
+  } catch (error) {
+    console.error("Erro ao carregar projetos:", error);
+    alert("Erro ao carregar projetos");
+  }
+};
+
 
   useEffect(() => {
     async function fetchAll() {

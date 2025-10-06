@@ -10,7 +10,7 @@ import App from "./App";
 import ProductRegistration from "./page/Product";
 import CategoryBrandManagement from "./page/Categories";
 import ProductTableManager from "./page/Product";
-import Portifolio from "./page/portifolio";
+import Portifolio from "./page/Portifolio";
 
 const router = createBrowserRouter([
   {

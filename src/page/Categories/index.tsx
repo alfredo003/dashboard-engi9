@@ -42,7 +42,6 @@ const CategoryBrandManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [errors, setErrors] = useState<{ name?: string; description?: string }>({});
 
-  // Estados de loading
   const [loadingCategories, setLoadingCategories] = useState(false);
   const [loadingBrands, setLoadingBrands] = useState(false);
   const [savingCategory, setSavingCategory] = useState(false);
@@ -50,33 +49,48 @@ const CategoryBrandManagement = () => {
   const [deletingCategory, setDeletingCategory] = useState<string | null>(null);
   const [deletingBrand, setDeletingBrand] = useState<string | null>(null);
 
-  const fetchCategories = async () => {
-    setLoadingCategories(true);
-    try {
-      const cats: Category[] = [];
-      const catSnap = await getCategories();
-      catSnap.forEach((doc: any) => {
-        cats.push({ id: doc.id, ...doc.data() });
-      });
-      setCategories(cats);
-    } finally {
-      setLoadingCategories(false);
-    }
-  };
+const fetchCategories = async () => {
+  setLoadingCategories(true);
+  try {
 
-  const fetchBrands = async () => {
-    setLoadingBrands(true);
-    try {
-      const brs: Brand[] = [];
-      const brandSnap = await getBrands();
-      brandSnap.forEach((doc: any) => {
-        brs.push({ id: doc.id, ...doc.data() });
-      });
-      setBrands(brs);
-    } finally {
-      setLoadingBrands(false);
+    const cached = localStorage.getItem("categories");
+    if (cached) {
+      setCategories(JSON.parse(cached));
     }
-  };
+
+    const cats: Category[] = [];
+    const catSnap = await getCategories();
+    catSnap.forEach((doc: any) => {
+      cats.push({ id: doc.id, ...doc.data() });
+    });
+    setCategories(cats);
+    localStorage.setItem("categories", JSON.stringify(cats));
+  } finally {
+    setLoadingCategories(false);
+  }
+};
+
+const fetchBrands = async () => {
+  setLoadingBrands(true);
+  try {
+    const cached = localStorage.getItem("brands");
+    if (cached) {
+      setBrands(JSON.parse(cached));
+    }
+
+    // busca da API e atualiza cache
+    const brs: Brand[] = [];
+    const brandSnap = await getBrands();
+    brandSnap.forEach((doc: any) => {
+      brs.push({ id: doc.id, ...doc.data() });
+    });
+    setBrands(brs);
+    localStorage.setItem("brands", JSON.stringify(brs));
+  } finally {
+    setLoadingBrands(false);
+  }
+};
+
 
   useEffect(() => {
     fetchCategories();

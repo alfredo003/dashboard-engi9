@@ -4,14 +4,20 @@ import { getProducts, addProduct, updateProduct, deleteProduct } from '../../api
 import { getCategories } from '../../api/categories';
 import { getBrands } from '../../api/brands';
 
+type ProductImage = {
+  url: string;
+  public_id: string;
+};
+
 type Product = {
   id?: string;
   name: string;
   category: string;
   brand: string;
-  image: any;
+  image: ProductImage | null;
   description?: string;
 };
+
 
 const ProductTableManager = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -38,40 +44,44 @@ const ProductTableManager = () => {
     (product.category || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleImageUpload = async (file: File) => {
-    if (image && image.url) {
-      URL.revokeObjectURL(image.url);
+const handleImageUpload = async (file: File) => {
+  if (image && image.url) {
+    URL.revokeObjectURL(image.url);
+  }
+  setUploading(true);
+  setLoading(true);
+  const data = new FormData();
+  data.append('file', file);
+  data.append('upload_preset', 'engi9_cloudinary');
+  data.append('cloud_name', 'dernmyl0i');
+  data.append("folder", "products");
+
+  try {
+    const res = await fetch(import.meta.env.VITE_CLOUDINARY_URL || '', {
+      method: 'POST',
+      body: data,
+    });
+    const json = await res.json();
+    setImage({
+      file,
+      url: json.secure_url,
+      name: file.name,
+      public_id: json.public_id   // 🔑 pega o id para deletar depois
+    });
+    if (errors.image) {
+      setErrors(prev => ({
+        ...prev,
+        image: ''
+      }));
     }
-    setUploading(true);
-    setLoading(true); // Set loading for image upload
-    const data = new FormData();
-    data.append('file', file);
-    data.append('upload_preset', 'engi9_cloudinary');
-    data.append('cloud_name', 'dernmyl0i');
-    try {
-      const res = await fetch(import.meta.env.VITE_CLOUDINARY_URL || '', {
-        method: 'POST',
-        body: data,
-      });
-      const json = await res.json();
-      setImage({
-        file,
-        url: json.secure_url,
-        name: file.name
-      });
-      if (errors.image) {
-        setErrors(prev => ({
-          ...prev,
-          image: ''
-        }));
-      }
-    } catch (error) {
-      alert('Erro ao fazer upload da imagem');
-    } finally {
-      setUploading(false);
-      setLoading(false); // Clear loading after upload
-    }
-  };
+  } catch (error) {
+    alert('Erro ao fazer upload da imagem');
+  } finally {
+    setUploading(false);
+    setLoading(false); 
+  }
+};
+
 
   const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -113,32 +123,42 @@ const ProductTableManager = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Tem certeza que deseja excluir este produto?')) {
-      setLoading(true); // Set loading for delete
-      try {
-        await deleteProduct(id);
-        const prods: Product[] = [];
-        const snap = await getProducts();
-        snap.forEach((doc: any) => {
-          const data = doc.data();
-          prods.push({
-            id: doc.id,
-            name: data.name || '',
-            category: data.category || '',
-            brand: data.brand || '',
-            image: data.image || null,
-            description: data.description || ''
-          });
+const handleDelete = async (id: string, public_id?: string) => {
+  if (window.confirm('Tem certeza que deseja excluir este produto?')) {
+    setLoading(true); 
+    try {
+      // 1. Remove do banco
+      await deleteProduct(id);
+
+      if (public_id) {
+        await fetch(import.meta.env.VITE_CLOUDINARY_URL || '', {
+          method: "DELETE"
         });
-        setProducts(prods);
-      } catch (error) {
-        alert('Erro ao excluir produto');
-      } finally {
-        setLoading(false); // Clear loading after delete
       }
+
+      // 3. Recarrega lista
+      const prods: Product[] = [];
+      const snap = await getProducts();
+      snap.forEach((doc: any) => {
+        const data = doc.data();
+        prods.push({
+          id: doc.id,
+          name: data.name || '',
+          category: data.category || '',
+          brand: data.brand || '',
+          image: data.image || null,
+          description: data.description || ''
+        });
+      });
+      setProducts(prods);
+    } catch (error) {
+      alert('Erro ao excluir produto');
+    } finally {
+      setLoading(false);
     }
-  };
+  }
+};
+
 
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
@@ -162,7 +182,10 @@ const ProductTableManager = () => {
       } else {
         await addProduct({
           ...formData,
-          image: image ? image.url : ''
+           image: {
+            url: image ? image.url : '',
+            public_id: image ? image.public_id : ''
+          }
         });
       }
 
@@ -217,48 +240,71 @@ const ProductTableManager = () => {
     setIsModalOpen(true);
   };
 
-  useEffect(() => {
-    async function fetchAll() {
-      setLoading(true); // Set loading for initial fetch
-      try {
-        const prods: Product[] = [];
-        const snap = await getProducts();
-        snap.forEach((doc: any) => {
-          const data = doc.data();
-          prods.push({
-            id: doc.id,
-            name: data.name || '',
-            category: data.category || '',
-            brand: data.brand || '',
-            image: data.image || null,
-            description: data.description || ''
-          });
-        });
-        setProducts(prods);
+useEffect(() => {
+  async function fetchAll() {
+    setLoading(true);
 
-        const catSnap = await getCategories();
-        const catList: string[] = [];
-        catSnap.forEach((doc: any) => {
-          const data = doc.data();
-          if (data.name) catList.push(data.name);
-        });
-        setCategories(catList);
-
-        const brandSnap = await getBrands();
-        const brandList: string[] = [];
-        brandSnap.forEach((doc: any) => {
-          const data = doc.data();
-          if (data.name) brandList.push(data.name);
-        });
-        setBrands(brandList);
-      } catch (error) {
-        alert('Erro ao carregar dados');
-      } finally {
-        setLoading(false); // Clear loading after fetch
+    try {
+      // 1. Tenta carregar do cache
+      const cachedProducts = localStorage.getItem("products");
+      if (cachedProducts) {
+        setProducts(JSON.parse(cachedProducts));
       }
+
+      const cachedCategories = localStorage.getItem("categories");
+      if (cachedCategories) {
+        setCategories(JSON.parse(cachedCategories));
+      }
+
+      const cachedBrands = localStorage.getItem("brands");
+      if (cachedBrands) {
+        setBrands(JSON.parse(cachedBrands));
+      }
+
+      // 2. Busca da API para garantir dados atualizados
+      const prods: Product[] = [];
+      const snap = await getProducts();
+      snap.forEach((doc: any) => {
+        const data = doc.data();
+        prods.push({
+          id: doc.id,
+          name: data.name || '',
+          category: data.category || '',
+          brand: data.brand || '',
+          image: data.image || null,
+          description: data.description || ''
+        });
+      });
+      setProducts(prods);
+      localStorage.setItem("products", JSON.stringify(prods));
+
+      const catSnap = await getCategories();
+      const catList: string[] = [];
+      catSnap.forEach((doc: any) => {
+        const data = doc.data();
+        if (data.name) catList.push(data.name);
+      });
+      setCategories(catList);
+      localStorage.setItem("categories", JSON.stringify(catList));
+
+      const brandSnap = await getBrands();
+      const brandList: string[] = [];
+      brandSnap.forEach((doc: any) => {
+        const data = doc.data();
+        if (data.name) brandList.push(data.name);
+      });
+      setBrands(brandList);
+      localStorage.setItem("brands", JSON.stringify(brandList));
+
+    } catch (error) {
+      alert('Erro ao carregar dados');
+    } finally {
+      setLoading(false);
     }
-    fetchAll();
-  }, []);
+  }
+  fetchAll();
+}, []);
+
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -329,7 +375,7 @@ const ProductTableManager = () => {
                   filteredProducts.map((product) => (
                     <tr key={product.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        <img src={product.image} alt="" width={0} />
+                        <img src={product.image?.url} alt="" width={100} />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">{product.name}</div>
@@ -356,7 +402,7 @@ const ProductTableManager = () => {
                             <Pencil className="h-4 w-4" />
                           </button>
                           <button
-                            onClick={() => product.id && handleDelete(product.id)}
+                            onClick={() => product.id && handleDelete(product.id, product.image?.public_id)}
                             className="text-red-600 hover:text-red-900 p-2 hover:bg-red-50 rounded-lg transition-colors"
                             title="Excluir"
                             disabled={loading} 
